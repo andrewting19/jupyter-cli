@@ -218,6 +218,24 @@ See [CLAUDE.md](CLAUDE.md) for a comprehensive guide on using jupyter-cli with L
 - Common workflows
 - Best practices
 
+### Claude Code Skill
+
+If you're using [Claude Code](https://claude.ai/claude-code), you can install the jupyter-cli skill to teach Claude how to use this tool:
+
+```bash
+# Install the skill (interactive prompt for global vs local)
+jupyter-cli install-skill
+
+# Or specify directly:
+jupyter-cli install-skill --global   # Available in all projects
+jupyter-cli install-skill --local    # Current directory only
+```
+
+After installation, restart Claude Code. The skill will:
+- Automatically activate when working with Jupyter notebooks
+- Be available via `/jupyter-cli` command
+- Teach Claude the proper commands and best practices
+
 ## Development
 
 ```bash

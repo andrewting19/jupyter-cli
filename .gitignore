@@ -31,3 +31,6 @@ htmlcov/
 
 # Project specific
 ~/.jupyter-cli/
+
+# Claude Code local settings
+.claude/

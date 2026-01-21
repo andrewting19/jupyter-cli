@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jupyter-cli"
-version = "0.1.1"
+version = "0.1.2"
 description = "Programmatic Jupyter cell execution with persistent kernels"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -46,3 +46,6 @@ Issues = "https://github.com/andrewting19/jupyter-cli/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.setuptools.package-data]
+"jupyter_cli.skill" = ["*.md"]

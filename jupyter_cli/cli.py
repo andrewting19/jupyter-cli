@@ -570,5 +570,66 @@ def outputs(notebook: str, cells: tuple, cell_range: str, as_json: bool):
         sys.exit(1)
 
 
+@main.command("install-skill")
+@click.option("--global", "scope_global", is_flag=True, help="Install globally (~/.claude/skills/)")
+@click.option("--local", "scope_local", is_flag=True, help="Install locally (./.claude/skills/)")
+def install_skill(scope_global: bool, scope_local: bool):
+    """Install the jupyter-cli skill for Claude Code.
+
+    This teaches Claude Code how to use jupyter-cli effectively.
+
+    Examples:
+        jupyter-cli install-skill --global   # Available in all projects
+        jupyter-cli install-skill --local    # Current directory only
+    """
+    from importlib.resources import files
+
+    # Determine scope
+    if scope_global and scope_local:
+        click.echo("Error: Cannot use both --global and --local", err=True)
+        sys.exit(1)
+
+    if not scope_global and not scope_local:
+        # Interactive prompt
+        click.echo("Where would you like to install the jupyter-cli skill?")
+        click.echo()
+        click.echo("  [1] Global  (~/.claude/skills/) - Available in all projects")
+        click.echo("  [2] Local   (./.claude/skills/) - Current directory only")
+        click.echo()
+        choice = click.prompt("Choose", type=click.Choice(["1", "2"]), default="1")
+        scope_global = (choice == "1")
+        scope_local = (choice == "2")
+
+    skill_name = "jupyter-cli"
+
+    if scope_global:
+        dest_dir = Path.home() / ".claude" / "skills" / skill_name
+    else:
+        dest_dir = Path(".claude") / "skills" / skill_name
+
+    # Get the source skill file from package data
+    try:
+        skill_package = files("jupyter_cli.skill")
+        source_content = (skill_package / "SKILL.md").read_text()
+    except Exception as e:
+        click.echo(f"Error: Could not find skill file in package: {e}", err=True)
+        sys.exit(1)
+
+    # Create destination directory
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write the skill file
+    dest_file = dest_dir / "SKILL.md"
+    dest_file.write_text(source_content)
+
+    click.echo(f"Installed {skill_name} skill to: {dest_dir}")
+    click.echo()
+    click.echo("The skill will be available after restarting Claude Code.")
+    click.echo()
+    click.echo("Usage:")
+    click.echo("  - Claude will automatically use this skill when working with Jupyter notebooks")
+    click.echo("  - Or invoke manually with: /jupyter-cli")
+
+
 if __name__ == "__main__":
     main()
