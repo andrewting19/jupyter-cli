@@ -106,7 +106,6 @@ jupyter-cli exec notebook.ipynb --range 50-   # From cell 50 onwards
 
 **Options**:
 ```bash
-jupyter-cli exec notebook.ipynb 5 --timeout 300  # 5 min timeout
 jupyter-cli exec notebook.ipynb 5 --quiet        # Suppress output
 ```
 
@@ -207,7 +206,7 @@ Error: Cell index 999 out of range (notebook has 50 cells)
 2. **Use `search` before reading** to find relevant cells
 3. **Start kernel before exec** - `exec` won't auto-start
 4. **Stop kernel when done** - Clean up resources
-5. **Use `--timeout` for long cells** - Default is 600s (10 min)
+5. **For long cells** - External tooling (e.g., Claude Code's bash timeout) handles timeouts
 
 ## Limitations
 

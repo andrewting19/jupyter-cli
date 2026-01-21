@@ -47,7 +47,7 @@ def connect_to_kernel(notebook_path: str) -> BlockingKernelClient:
     return kc
 
 
-def execute_code(kc: BlockingKernelClient, code: str, timeout: float = 600) -> Dict[str, Any]:
+def execute_code(kc: BlockingKernelClient, code: str) -> Dict[str, Any]:
     """
     Execute code on the kernel and capture all outputs.
 
@@ -65,7 +65,7 @@ def execute_code(kc: BlockingKernelClient, code: str, timeout: float = 600) -> D
     # Collect outputs from IOPub channel
     while True:
         try:
-            msg = kc.get_iopub_msg(timeout=timeout)
+            msg = kc.get_iopub_msg()
         except Exception:
             break
 
@@ -113,7 +113,7 @@ def execute_code(kc: BlockingKernelClient, code: str, timeout: float = 600) -> D
 
     # Get reply to check execution status
     try:
-        reply = kc.get_shell_msg(timeout=timeout)
+        reply = kc.get_shell_msg()
         reply_status = reply["content"].get("status", "ok")
     except Exception:
         reply_status = "ok"  # Assume ok if we can't get reply
@@ -167,7 +167,6 @@ def format_output(output: Dict[str, Any]) -> str:
 def execute_cells(
     notebook_path: str,
     cell_indices: List[int],
-    timeout: float = 600,
     verbose: bool = True,
 ) -> List[Dict[str, Any]]:
     """
@@ -176,7 +175,6 @@ def execute_cells(
     Args:
         notebook_path: Path to the notebook file
         cell_indices: List of cell indices to execute (0-indexed)
-        timeout: Timeout per cell in seconds
         verbose: Whether to print output
 
     Returns:
@@ -219,7 +217,7 @@ def execute_cells(
                 print(f"[Cell {idx}] Executing: {code_preview}")
 
             # Execute
-            result = execute_code(kc, code, timeout=timeout)
+            result = execute_code(kc, code)
             result["cell_index"] = idx
             result["cell_type"] = cell_type
 

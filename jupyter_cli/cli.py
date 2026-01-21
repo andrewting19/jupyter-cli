@@ -63,11 +63,10 @@ def start(notebook: str, kernel: str):
 @main.command()
 @click.argument("notebook", type=click.Path(exists=True))
 @click.argument("cells", nargs=-1, type=int)
-@click.option("--timeout", "-t", default=600, help="Timeout per cell in seconds (default: 600)")
 @click.option("--quiet", "-q", is_flag=True, help="Suppress output")
 @click.option("--all", "-a", "run_all", is_flag=True, help="Execute all code cells")
 @click.option("--range", "cell_range", type=str, help="Cell range (e.g., '0-10', '50-')")
-def exec(notebook: str, cells: tuple, timeout: int, quiet: bool, run_all: bool, cell_range: str):
+def exec(notebook: str, cells: tuple, quiet: bool, run_all: bool, cell_range: str):
     """Execute specific cells from a notebook.
 
     NOTEBOOK is the path to the .ipynb file.
@@ -75,7 +74,7 @@ def exec(notebook: str, cells: tuple, timeout: int, quiet: bool, run_all: bool, 
 
     Examples:
         jupyter-cli exec notebook.ipynb 0 1 2
-        jupyter-cli exec notebook.ipynb 50 51 52 --timeout 300
+        jupyter-cli exec notebook.ipynb 50 51 52
         jupyter-cli exec notebook.ipynb --all
         jupyter-cli exec notebook.ipynb --range 0-10
     """
@@ -110,7 +109,6 @@ def exec(notebook: str, cells: tuple, timeout: int, quiet: bool, run_all: bool, 
         results = execute_cells(
             notebook_path,
             cell_indices,
-            timeout=timeout,
             verbose=not quiet,
         )
 
