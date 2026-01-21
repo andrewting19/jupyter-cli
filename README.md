@@ -1,5 +1,9 @@
 # jupyter-cli
 
+[![PyPI version](https://badge.fury.io/py/jupyter-cli.svg)](https://pypi.org/project/jupyter-cli/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Programmatic Jupyter notebook cell execution with persistent kernels.
 
 ## The Problem
@@ -32,7 +36,7 @@ jupyter-cli stop notebook.ipynb
 pip install jupyter-cli
 
 # Or from source
-git clone <repo>
+git clone https://github.com/andrewting19/jupyter-cli.git
 cd jupyter-cli
 pip install -e .
 ```

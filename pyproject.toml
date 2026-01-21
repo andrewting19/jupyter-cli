@@ -4,10 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jupyter-cli"
-version = "0.1.0"
+version = "0.1.1"
 description = "Programmatic Jupyter cell execution with persistent kernels"
 readme = "README.md"
 requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Andrew Ting"}
+]
+keywords = ["jupyter", "notebook", "cli", "kernel", "execution", "llm", "agent"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "jupyter_client>=7.0.0",
     "nbformat>=5.0.0",
@@ -22,6 +38,11 @@ dev = [
 
 [project.scripts]
 jupyter-cli = "jupyter_cli.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/andrewting19/jupyter-cli"
+Repository = "https://github.com/andrewting19/jupyter-cli"
+Issues = "https://github.com/andrewting19/jupyter-cli/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
