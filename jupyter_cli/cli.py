@@ -62,10 +62,12 @@ def start(notebook: str, kernel: str):
 
 @main.command()
 @click.argument("notebook", type=click.Path(exists=True))
-@click.argument("cells", nargs=-1, type=int, required=True)
+@click.argument("cells", nargs=-1, type=int)
 @click.option("--timeout", "-t", default=600, help="Timeout per cell in seconds (default: 600)")
 @click.option("--quiet", "-q", is_flag=True, help="Suppress output")
-def exec(notebook: str, cells: tuple, timeout: int, quiet: bool):
+@click.option("--all", "-a", "run_all", is_flag=True, help="Execute all code cells")
+@click.option("--range", "cell_range", type=str, help="Cell range (e.g., '0-10', '50-')")
+def exec(notebook: str, cells: tuple, timeout: int, quiet: bool, run_all: bool, cell_range: str):
     """Execute specific cells from a notebook.
 
     NOTEBOOK is the path to the .ipynb file.
@@ -74,9 +76,35 @@ def exec(notebook: str, cells: tuple, timeout: int, quiet: bool):
     Examples:
         jupyter-cli exec notebook.ipynb 0 1 2
         jupyter-cli exec notebook.ipynb 50 51 52 --timeout 300
+        jupyter-cli exec notebook.ipynb --all
+        jupyter-cli exec notebook.ipynb --range 0-10
     """
     notebook_path = str(Path(notebook).resolve())
-    cell_indices = list(cells)
+
+    # Determine which cells to execute
+    if cells:
+        cell_indices = list(cells)
+    elif run_all:
+        # Get all code cell indices
+        nb = read_notebook(notebook_path)
+        cell_indices = get_code_cells(nb)
+        if not cell_indices:
+            click.echo("No code cells found in notebook")
+            return
+    elif cell_range:
+        # Parse range and filter to code cells only
+        nb = read_notebook(notebook_path)
+        total_cells = len(nb.cells)
+        range_indices = parse_range(cell_range, total_cells - 1)
+        # Filter to only code cells within range
+        code_cells = set(get_code_cells(nb))
+        cell_indices = [i for i in range_indices if i in code_cells]
+        if not cell_indices:
+            click.echo("No code cells found in specified range")
+            return
+    else:
+        click.echo("Error: Provide cell indices, --all, or --range", err=True)
+        sys.exit(1)
 
     try:
         results = execute_cells(
