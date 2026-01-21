@@ -132,32 +132,36 @@ def exec(notebook: str, cells: tuple, quiet: bool, run_all: bool, cell_range: st
 @main.command()
 @click.argument("notebook", type=click.Path(exists=True))
 @click.argument("code", type=str, required=False)
+@click.option("--file", "-f", "code_file", type=click.Path(exists=True), help="Read code from file")
 @click.option("--quiet", "-q", is_flag=True, help="Suppress output")
-def run(notebook: str, code: str, quiet: bool):
+def run(notebook: str, code: str, code_file: str, quiet: bool):
     """Execute inline code on the notebook's kernel.
 
     Run arbitrary Python code against the notebook's persistent kernel,
     with access to all variables and state from previous executions.
     Like creating a temporary cell, running it, then deleting it.
 
-    CODE can be provided as an argument or via stdin (use - or omit).
+    CODE can be provided as an argument, via --file, or via stdin (use -).
 
     Examples:
         jupyter-cli run notebook.ipynb "print(df.shape)"
         jupyter-cli run notebook.ipynb "x + y"
-        jupyter-cli run notebook.ipynb "type(model)"
+        jupyter-cli run notebook.ipynb --file script.py
         echo "for i in range(3): print(i)" | jupyter-cli run notebook.ipynb -
-        jupyter-cli run notebook.ipynb <<< "locals().keys()"
     """
     notebook_path = str(Path(notebook).resolve())
 
-    # Get code from argument or stdin
-    if code is None or code == "-":
+    # Get code from file, argument, or stdin
+    if code_file:
+        # Read from file (best for complex/multiline code)
+        code = Path(code_file).read_text()
+    elif code is None or code == "-":
         # Read from stdin
         if sys.stdin.isatty():
-            click.echo("Error: No code provided. Pass code as argument or via stdin.", err=True)
+            click.echo("Error: No code provided. Pass code as argument, --file, or via stdin.", err=True)
             click.echo("Examples:", err=True)
             click.echo('  jupyter-cli run notebook.ipynb "print(x)"', err=True)
+            click.echo('  jupyter-cli run notebook.ipynb --file code.py', err=True)
             click.echo('  echo "print(x)" | jupyter-cli run notebook.ipynb -', err=True)
             sys.exit(1)
         code = sys.stdin.read()

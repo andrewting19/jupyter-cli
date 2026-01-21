@@ -88,6 +88,7 @@ jupyter-cli stop notebook.ipynb
 | Command | Description |
 |---------|-------------|
 | `run <notebook> "code"` | Execute arbitrary code on kernel |
+| `run <notebook> --file script.py` | Execute code from file (best for complex code) |
 | `run <notebook> -` | Read code from stdin |
 | `run <notebook> "code" --quiet` | Suppress output |
 
@@ -177,12 +178,15 @@ $ jupyter-cli run analysis.ipynb "df.columns.tolist()"
 [inline] Executing: df.columns.tolist()
 ['id', 'name', 'price', 'category', ...]
 
-# Test expressions before adding to notebook
-$ jupyter-cli run analysis.ipynb "df.groupby('category')['price'].mean()"
-[inline] Executing: df.groupby('category')['price'].mean()
-category
-electronics    299.99
-clothing        49.99
+# For complex/multiline code, use --file to avoid shell escaping issues
+$ cat > /tmp/analysis.py << 'EOF'
+for col in df.select_dtypes(include='number').columns:
+    print(f"{col}: mean={df[col].mean():.2f}, std={df[col].std():.2f}")
+EOF
+$ jupyter-cli run analysis.ipynb --file /tmp/analysis.py
+[inline] Executing: for col in df.select_dtypes(include='number').columns:...
+price: mean=149.99, std=75.23
+quantity: mean=2.5, std=1.2
 ...
 
 # Debug: see what's in scope

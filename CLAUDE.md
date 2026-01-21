@@ -113,10 +113,16 @@ jupyter-cli run notebook.ipynb "type(model)"
 jupyter-cli run notebook.ipynb "list(locals().keys())"
 ```
 
+**Complex/multiline code** via file (recommended for LLM agents):
+```bash
+# Write code to a temp file, then execute - avoids shell escaping issues
+jupyter-cli run notebook.ipynb --file /tmp/code.py
+jupyter-cli run notebook.ipynb -f script.py
+```
+
 **Multiline code** via stdin:
 ```bash
 echo "for i in range(3): print(i)" | jupyter-cli run notebook.ipynb -
-jupyter-cli run notebook.ipynb <<< "df.describe()"
 ```
 
 **Options**:
@@ -129,6 +135,8 @@ This is useful for:
 - Testing expressions before adding them to cells
 - Debugging (`dir()`, `type()`, `locals()`)
 - One-off commands that don't belong in the notebook
+
+**Tip for LLM agents**: Use `--file` for any code with quotes, newlines, or special characters to avoid shell escaping issues.
 
 ### Reading Outputs
 

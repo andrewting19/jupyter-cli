@@ -119,7 +119,13 @@ jupyter-cli exec notebook.ipynb 5 --quiet        # Suppress output
 jupyter-cli run notebook.ipynb "print(df.shape)"
 jupyter-cli run notebook.ipynb "x + y"
 jupyter-cli run notebook.ipynb "type(model)"
-jupyter-cli run notebook.ipynb "list(locals().keys())"
+```
+
+**Complex/multiline code** via file (recommended):
+```bash
+# Write code to a temp file first, then execute - avoids shell escaping issues
+jupyter-cli run notebook.ipynb --file /tmp/code.py
+jupyter-cli run notebook.ipynb -f script.py
 ```
 
 **Multiline code** via stdin:
@@ -132,6 +138,8 @@ This is useful for:
 - Testing expressions before adding them to cells
 - Debugging (`dir()`, `type()`, `locals()`)
 - One-off commands that don't belong in the notebook
+
+**Important**: For code with quotes, newlines, or special characters, use `--file` to avoid shell escaping issues. Write the code to a temp file first, then execute.
 
 ### Reading Outputs
 
