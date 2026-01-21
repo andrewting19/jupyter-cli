@@ -18,11 +18,14 @@ pip install jupyter-cli
 ## Quick Reference
 
 ```bash
-# Start kernel (required before exec)
+# Start kernel (required before exec/run)
 jupyter-cli start notebook.ipynb
 
 # Execute cells (0-indexed)
 jupyter-cli exec notebook.ipynb 0 1 2
+
+# Run inline code (no cell needed)
+jupyter-cli run notebook.ipynb "print(df.shape)"
 
 # Stop kernel when done
 jupyter-cli stop notebook.ipynb
@@ -109,6 +112,27 @@ jupyter-cli exec notebook.ipynb --range 50-   # From cell 50 onwards
 jupyter-cli exec notebook.ipynb 5 --quiet        # Suppress output
 ```
 
+### Running Inline Code
+
+**Execute arbitrary code** without creating a cell:
+```bash
+jupyter-cli run notebook.ipynb "print(df.shape)"
+jupyter-cli run notebook.ipynb "x + y"
+jupyter-cli run notebook.ipynb "type(model)"
+jupyter-cli run notebook.ipynb "list(locals().keys())"
+```
+
+**Multiline code** via stdin:
+```bash
+echo "for i in range(3): print(i)" | jupyter-cli run notebook.ipynb -
+```
+
+This is useful for:
+- Quick variable inspection without modifying the notebook
+- Testing expressions before adding them to cells
+- Debugging (`dir()`, `type()`, `locals()`)
+- One-off commands that don't belong in the notebook
+
 ### Reading Outputs
 
 **View stored outputs** (from previous notebook runs):
@@ -172,6 +196,25 @@ jupyter-cli search notebook.ipynb "variable_name"
 # Run cells leading up to failure
 jupyter-cli exec notebook.ipynb 38 39 40 41
 jupyter-cli exec notebook.ipynb 42  # See current error
+```
+
+### 4. Quick Inspection with Inline Code
+
+```bash
+# Start kernel and run setup
+jupyter-cli start analysis.ipynb
+jupyter-cli exec analysis.ipynb 0 1 2 3
+
+# Inspect variables without modifying notebook
+jupyter-cli run analysis.ipynb "df.shape"
+jupyter-cli run analysis.ipynb "df.columns.tolist()"
+jupyter-cli run analysis.ipynb "df['price'].describe()"
+
+# Test an expression before adding to notebook
+jupyter-cli run analysis.ipynb "df.groupby('category').mean()"
+
+# Debug: see what's in scope
+jupyter-cli run analysis.ipynb "list(locals().keys())"
 ```
 
 ## Token Efficiency Tips

@@ -164,6 +164,54 @@ def format_output(output: Dict[str, Any]) -> str:
     return str(output)
 
 
+def execute_inline(
+    notebook_path: str,
+    code: str,
+    verbose: bool = True,
+) -> Dict[str, Any]:
+    """
+    Execute arbitrary inline code on the notebook's persistent kernel.
+
+    This is like creating a temporary cell, running it, and deleting it.
+    The code has access to all variables and state from previous executions.
+
+    Args:
+        notebook_path: Path to the notebook (used to identify the kernel)
+        code: Python code to execute
+        verbose: Whether to print output
+
+    Returns:
+        Execution result dict with status, outputs, and error info
+    """
+    # Connect to kernel
+    kc = connect_to_kernel(notebook_path)
+
+    try:
+        if verbose:
+            # Show code being executed (truncated preview)
+            code_preview = code[:100] + "..." if len(code) > 100 else code
+            code_preview = code_preview.replace("\n", "\\n")
+            print(f"[inline] Executing: {code_preview}")
+
+        # Execute
+        result = execute_code(kc, code)
+
+        # Print outputs
+        if verbose and result["outputs"]:
+            for output in result["outputs"]:
+                formatted = format_output(output)
+                if formatted:
+                    print(formatted, end="" if output.get("type") == "stream" else "\n")
+
+        if verbose and result["status"] == "error":
+            print("[inline] Error!", file=sys.stderr)
+
+        return result
+
+    finally:
+        kc.stop_channels()
+
+
 def execute_cells(
     notebook_path: str,
     cell_indices: List[int],

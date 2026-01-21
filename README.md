@@ -56,6 +56,9 @@ jupyter-cli start notebook.ipynb
 # Execute cells (0-indexed)
 jupyter-cli exec notebook.ipynb 0 1 2
 
+# Run inline code (no cell needed)
+jupyter-cli run notebook.ipynb "print(df.shape)"
+
 # Stop the kernel
 jupyter-cli stop notebook.ipynb
 ```
@@ -79,6 +82,14 @@ jupyter-cli stop notebook.ipynb
 | `exec <notebook> --all` | Execute all code cells |
 | `exec <notebook> --range 0-10` | Execute cell range |
 | `exec <notebook> 0 --quiet` | Suppress output |
+
+### Inline Code Execution
+
+| Command | Description |
+|---------|-------------|
+| `run <notebook> "code"` | Execute arbitrary code on kernel |
+| `run <notebook> -` | Read code from stdin |
+| `run <notebook> "code" --quiet` | Suppress output |
 
 ### Notebook Exploration
 
@@ -152,6 +163,32 @@ Accuracy: 0.92
 # Clean up
 $ jupyter-cli stop analysis.ipynb
 Kernel stopped.
+```
+
+### Inline Code Execution
+
+```bash
+# After running setup cells, inspect variables without modifying notebook
+$ jupyter-cli run analysis.ipynb "df.shape"
+[inline] Executing: df.shape
+(10000, 25)
+
+$ jupyter-cli run analysis.ipynb "df.columns.tolist()"
+[inline] Executing: df.columns.tolist()
+['id', 'name', 'price', 'category', ...]
+
+# Test expressions before adding to notebook
+$ jupyter-cli run analysis.ipynb "df.groupby('category')['price'].mean()"
+[inline] Executing: df.groupby('category')['price'].mean()
+category
+electronics    299.99
+clothing        49.99
+...
+
+# Debug: see what's in scope
+$ jupyter-cli run analysis.ipynb "list(locals().keys())"
+[inline] Executing: list(locals().keys())
+['df', 'model', 'X_train', 'y_train', ...]
 ```
 
 ### Reading Previous Outputs

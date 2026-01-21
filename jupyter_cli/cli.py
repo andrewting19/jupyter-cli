@@ -14,7 +14,7 @@ from .daemon import (
     is_kernel_alive,
     list_all_kernels,
 )
-from .client import execute_cells, KernelNotRunningError
+from .client import execute_cells, execute_inline, KernelNotRunningError
 from .notebook import read_notebook, get_cell_count, get_code_cells
 
 
@@ -126,6 +126,62 @@ def exec(notebook: str, cells: tuple, quiet: bool, run_all: bool, cell_range: st
         sys.exit(1)
     except Exception as e:
         click.echo(f"Error executing cells: {e}", err=True)
+        sys.exit(1)
+
+
+@main.command()
+@click.argument("notebook", type=click.Path(exists=True))
+@click.argument("code", type=str, required=False)
+@click.option("--quiet", "-q", is_flag=True, help="Suppress output")
+def run(notebook: str, code: str, quiet: bool):
+    """Execute inline code on the notebook's kernel.
+
+    Run arbitrary Python code against the notebook's persistent kernel,
+    with access to all variables and state from previous executions.
+    Like creating a temporary cell, running it, then deleting it.
+
+    CODE can be provided as an argument or via stdin (use - or omit).
+
+    Examples:
+        jupyter-cli run notebook.ipynb "print(df.shape)"
+        jupyter-cli run notebook.ipynb "x + y"
+        jupyter-cli run notebook.ipynb "type(model)"
+        echo "for i in range(3): print(i)" | jupyter-cli run notebook.ipynb -
+        jupyter-cli run notebook.ipynb <<< "locals().keys()"
+    """
+    notebook_path = str(Path(notebook).resolve())
+
+    # Get code from argument or stdin
+    if code is None or code == "-":
+        # Read from stdin
+        if sys.stdin.isatty():
+            click.echo("Error: No code provided. Pass code as argument or via stdin.", err=True)
+            click.echo("Examples:", err=True)
+            click.echo('  jupyter-cli run notebook.ipynb "print(x)"', err=True)
+            click.echo('  echo "print(x)" | jupyter-cli run notebook.ipynb -', err=True)
+            sys.exit(1)
+        code = sys.stdin.read()
+
+    if not code.strip():
+        click.echo("Error: Empty code provided", err=True)
+        sys.exit(1)
+
+    try:
+        result = execute_inline(
+            notebook_path,
+            code,
+            verbose=not quiet,
+        )
+
+        if result.get("status") == "error":
+            sys.exit(1)
+
+    except KernelNotRunningError as e:
+        click.echo(f"Error: {e}", err=True)
+        click.echo("Hint: Run 'jupyter-cli start <notebook>' first", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error executing code: {e}", err=True)
         sys.exit(1)
 
 
