@@ -219,8 +219,8 @@ class TestCellExecution:
         assert results[0]["status"] == "skipped"
         assert results[0]["cell_type"] == "markdown"
 
-    def test_execute_with_timeout(self):
-        results = execute_cells(str(TEST_NOTEBOOK), [0], timeout=10, verbose=False)
+    def test_execute_basic(self):
+        results = execute_cells(str(TEST_NOTEBOOK), [0], verbose=False)
         assert results[0]["status"] == "ok"
 
     def test_connect_to_kernel(self):

@@ -76,7 +76,8 @@ jupyter-cli stop notebook.ipynb
 | Command | Description |
 |---------|-------------|
 | `exec <notebook> <cells...>` | Execute specific cells |
-| `exec <notebook> 0 1 2 --timeout 300` | With custom timeout |
+| `exec <notebook> --all` | Execute all code cells |
+| `exec <notebook> --range 0-10` | Execute cell range |
 | `exec <notebook> 0 --quiet` | Suppress output |
 
 ### Notebook Exploration

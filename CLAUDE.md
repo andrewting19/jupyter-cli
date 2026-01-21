@@ -88,9 +88,15 @@ jupyter-cli exec notebook.ipynb 0 1 2 3  # Multiple cells
 jupyter-cli exec notebook.ipynb 50 51    # Later cells only
 ```
 
+**Run all or range**:
+```bash
+jupyter-cli exec notebook.ipynb --all         # All code cells
+jupyter-cli exec notebook.ipynb --range 0-10  # Cells 0-10 (code only)
+jupyter-cli exec notebook.ipynb --range 50-   # From cell 50 onwards
+```
+
 **Options**:
 ```bash
-jupyter-cli exec notebook.ipynb 5 --timeout 300  # 5 min timeout
 jupyter-cli exec notebook.ipynb 5 --quiet        # Suppress output
 ```
 
@@ -221,4 +227,4 @@ NameError: name 'undefined_variable' is not defined
 2. **Use `search` before reading** to find relevant cells
 3. **Start kernel before exec** - `exec` won't auto-start
 4. **Stop kernel when done** - Clean up resources
-5. **Use `--timeout` for long cells** - Default is 600s (10 min)
+5. **For long cells** - External tooling handles timeouts if needed
