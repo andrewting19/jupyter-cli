@@ -31,6 +31,30 @@ def get_kernel_info_path(notebook_path: str) -> Path:
     return KERNELS_DIR / f"{safe_name}.json"
 
 
+def get_kernel_error_path(notebook_path: str) -> Path:
+    """Get path to kernel error file for a notebook."""
+    abs_path = Path(notebook_path).resolve()
+    safe_name = str(abs_path).replace("/", "_").replace("\\", "_")
+    return KERNELS_DIR / f"{safe_name}.error"
+
+
+def save_kernel_error(notebook_path: str, error: str):
+    """Save kernel startup error to file."""
+    ensure_state_dirs()
+    error_path = get_kernel_error_path(notebook_path)
+    error_path.write_text(error)
+
+
+def load_kernel_error(notebook_path: str) -> Optional[str]:
+    """Load kernel startup error if exists."""
+    error_path = get_kernel_error_path(notebook_path)
+    if error_path.exists():
+        error = error_path.read_text()
+        error_path.unlink()  # Clean up after reading
+        return error
+    return None
+
+
 def save_kernel_info(notebook_path: str, kernel_id: str, connection_file: str, pid: int):
     """Save kernel info to state file."""
     ensure_state_dirs()
@@ -128,7 +152,11 @@ def start_kernel_daemon(notebook_path: str, kernel_name: str = "python3") -> Dic
                 "connection_file": info["connection_file"],
             }
         else:
-            return {"status": "error", "message": "Kernel failed to start"}
+            # Check for error message from daemon
+            error = load_kernel_error(notebook_path)
+            if error:
+                return {"status": "error", "message": error}
+            return {"status": "error", "message": "Kernel failed to start (unknown error)"}
 
     else:
         # Child process - become daemon
@@ -174,8 +202,16 @@ def start_kernel_daemon(notebook_path: str, kernel_name: str = "python3") -> Dic
                 time.sleep(5)
 
         except Exception as e:
-            # Log error and exit
+            # Save error for parent process to read
+            error_msg = str(e)
+            # Add helpful hints for common errors
+            if "No such file or directory" in error_msg and "kernel" in error_msg.lower():
+                error_msg = f"{error_msg}\nHint: Make sure ipykernel is installed: pip install ipykernel"
+            elif "No kernel" in error_msg or "not found" in error_msg.lower():
+                error_msg = f"{error_msg}\nHint: Install a kernel with: pip install ipykernel"
+
             try:
+                save_kernel_error(notebook_path, error_msg)
                 with open(STATE_DIR / "daemon_error.log", "a") as f:
                     f.write(f"{time.time()}: {e}\n")
             except:
