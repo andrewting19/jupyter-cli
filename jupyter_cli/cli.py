@@ -657,16 +657,20 @@ def outputs(notebook: str, cells: tuple, cell_range: str, as_json: bool):
 
 
 @main.command("install-skill")
-@click.option("--global", "scope_global", is_flag=True, help="Install globally (~/.claude/skills/)")
-@click.option("--local", "scope_local", is_flag=True, help="Install locally (./.claude/skills/)")
-def install_skill(scope_global: bool, scope_local: bool):
-    """Install the jupyter-cli skill for Claude Code.
+@click.option("--global", "scope_global", is_flag=True, help="Install globally (~/.claude/skills/ or ~/.codex/skills/)")
+@click.option("--local", "scope_local", is_flag=True, help="Install locally (./.claude/skills/ or ./.codex/skills/)")
+@click.option("--claude", "target_claude", is_flag=True, help="Install for Claude Code")
+@click.option("--codex", "target_codex", is_flag=True, help="Install for Codex CLI")
+def install_skill(scope_global: bool, scope_local: bool, target_claude: bool, target_codex: bool):
+    """Install the jupyter-cli skill for Claude Code and/or Codex CLI.
 
-    This teaches Claude Code how to use jupyter-cli effectively.
+    This teaches Claude Code or Codex how to use jupyter-cli effectively.
 
     Examples:
-        jupyter-cli install-skill --global   # Available in all projects
-        jupyter-cli install-skill --local    # Current directory only
+        jupyter-cli install-skill --global            # Auto-detect available tools
+        jupyter-cli install-skill --global --claude   # Claude Code only
+        jupyter-cli install-skill --global --codex    # Codex CLI only
+        jupyter-cli install-skill --local             # Current directory only
     """
     from importlib.resources import files
 
@@ -675,23 +679,56 @@ def install_skill(scope_global: bool, scope_local: bool):
         click.echo("Error: Cannot use both --global and --local", err=True)
         sys.exit(1)
 
+    # Detect available tools
+    claude_global_exists = (Path.home() / ".claude").exists()
+    codex_global_exists = (Path.home() / ".codex").exists()
+
+    # Determine targets
+    if not target_claude and not target_codex:
+        # Auto-detect: find which tools are available
+        available = []
+        if claude_global_exists:
+            available.append(("claude", "Claude Code"))
+        if codex_global_exists:
+            available.append(("codex", "Codex CLI"))
+
+        if not available:
+            # Neither found, default to Claude Code
+            click.echo("Note: Neither ~/.claude nor ~/.codex found. Defaulting to Claude Code.")
+            target_claude = True
+        elif len(available) == 1:
+            # Only one found, use it
+            if available[0][0] == "claude":
+                target_claude = True
+            else:
+                target_codex = True
+            click.echo(f"Detected {available[0][1]}")
+        else:
+            # Both found, prompt user
+            click.echo("Detected both Claude Code and Codex CLI.")
+            click.echo()
+            click.echo("Which tool(s) to install for?")
+            click.echo("  [1] Claude Code only")
+            click.echo("  [2] Codex CLI only")
+            click.echo("  [3] Both")
+            click.echo()
+            choice = click.prompt("Choose", type=click.Choice(["1", "2", "3"]), default="3")
+            target_claude = choice in ("1", "3")
+            target_codex = choice in ("2", "3")
+
     if not scope_global and not scope_local:
-        # Interactive prompt
+        # Interactive prompt for scope
+        click.echo()
         click.echo("Where would you like to install the jupyter-cli skill?")
         click.echo()
-        click.echo("  [1] Global  (~/.claude/skills/) - Available in all projects")
-        click.echo("  [2] Local   (./.claude/skills/) - Current directory only")
+        click.echo("  [1] Global  (~/.<tool>/skills/) - Available in all projects")
+        click.echo("  [2] Local   (./<tool>/skills/)  - Current directory only")
         click.echo()
         choice = click.prompt("Choose", type=click.Choice(["1", "2"]), default="1")
         scope_global = (choice == "1")
         scope_local = (choice == "2")
 
     skill_name = "jupyter-cli"
-
-    if scope_global:
-        dest_dir = Path.home() / ".claude" / "skills" / skill_name
-    else:
-        dest_dir = Path(".claude") / "skills" / skill_name
 
     # Get the source skill file from package data
     try:
@@ -701,19 +738,37 @@ def install_skill(scope_global: bool, scope_local: bool):
         click.echo(f"Error: Could not find skill file in package: {e}", err=True)
         sys.exit(1)
 
-    # Create destination directory
-    dest_dir.mkdir(parents=True, exist_ok=True)
+    # Install for each target
+    targets = []
+    if target_claude:
+        targets.append(("claude", "Claude Code"))
+    if target_codex:
+        targets.append(("codex", "Codex CLI"))
 
-    # Write the skill file
-    dest_file = dest_dir / "SKILL.md"
-    dest_file.write_text(source_content)
+    installed_dirs = []
+    for tool_dir, tool_name in targets:
+        if scope_global:
+            dest_dir = Path.home() / f".{tool_dir}" / "skills" / skill_name
+        else:
+            dest_dir = Path(f".{tool_dir}") / "skills" / skill_name
 
-    click.echo(f"Installed {skill_name} skill to: {dest_dir}")
+        # Create destination directory
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write the skill file
+        dest_file = dest_dir / "SKILL.md"
+        dest_file.write_text(source_content)
+        installed_dirs.append((dest_dir, tool_name))
+
     click.echo()
-    click.echo("The skill will be available after restarting Claude Code.")
+    for dest_dir, tool_name in installed_dirs:
+        click.echo(f"Installed {skill_name} skill for {tool_name}: {dest_dir}")
+
+    click.echo()
+    click.echo("The skill will be available after restarting your coding assistant.")
     click.echo()
     click.echo("Usage:")
-    click.echo("  - Claude will automatically use this skill when working with Jupyter notebooks")
+    click.echo("  - The assistant will automatically use this skill when working with Jupyter notebooks")
     click.echo("  - Or invoke manually with: /jupyter-cli")
 
 

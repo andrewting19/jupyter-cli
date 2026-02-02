@@ -260,23 +260,30 @@ See [CLAUDE.md](CLAUDE.md) for a comprehensive guide on using jupyter-cli with L
 - Common workflows
 - Best practices
 
-### Claude Code Skill
+### Claude Code / Codex Skill
 
-If you're using [Claude Code](https://claude.ai/claude-code), you can install the jupyter-cli skill to teach Claude how to use this tool:
+If you're using [Claude Code](https://claude.ai/claude-code) or [Codex CLI](https://github.com/openai/codex), you can install the jupyter-cli skill to teach the assistant how to use this tool:
 
 ```bash
-# Install the skill (interactive prompt for global vs local)
+# Install the skill (auto-detects available tools)
 jupyter-cli install-skill
 
 # Or specify directly:
-jupyter-cli install-skill --global   # Available in all projects
-jupyter-cli install-skill --local    # Current directory only
+jupyter-cli install-skill --global            # Auto-detect, all projects
+jupyter-cli install-skill --global --claude   # Claude Code only
+jupyter-cli install-skill --global --codex    # Codex CLI only
+jupyter-cli install-skill --local             # Current directory only
 ```
 
-After installation, restart Claude Code. The skill will:
+The installer will:
+- Auto-detect whether Claude Code (`~/.claude/`) or Codex (`~/.codex/`) is installed
+- If both are found, prompt you to choose which one(s) to install for
+- Support installing to both tools simultaneously
+
+After installation, restart your coding assistant. The skill will:
 - Automatically activate when working with Jupyter notebooks
 - Be available via `/jupyter-cli` command
-- Teach Claude the proper commands and best practices
+- Teach the assistant the proper commands and best practices
 
 ## Development
 
